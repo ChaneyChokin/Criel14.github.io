@@ -51,6 +51,11 @@ const colorConfigReset2Element = document.getElementById("config-overlay-reset2-
 const sizeInputs = document.getElementsByClassName("size-input");
 // 显示滑块的值
 const sizeInfoElements = document.getElementsByClassName("size-info");
+// 确认页面的按钮
+const confirmButtonElement = document.getElementById("confirm-overlay-confirm-button");
+const cancelButtonElement = document.getElementById("confirm-overlay-cancel-button");
+// 底部开源说明
+const footInfoElement = document.getElementById("foot-info");
 
 // 定义拼图的阶数（边长）
 let size = 4;
@@ -91,6 +96,8 @@ let isAllowOperate = true;
 let moveSequence = [];
 // 是否的重玩模式
 let isRetry = false;
+// 在配置页面是否做了修改
+let isChangeConfig = false;
 
 // 样式配置
 // 颜色配置
@@ -102,10 +109,17 @@ let gapWidthRatio = defaultGapWidthRatio1;
 // 圆角大小系数（取值范围0 - 0.5），：圆角大小 = 滑块的边长 * borderRadiusRatio
 let borderRadiusRatio = defaultBorderRadiusRatio1;
 // 游玩时候的拼图快总边长
-// let edgeLength = 500; // px
 let edgeLength = 27; // vw
 // 曼哈顿距离
 let manhattanDistance = 0
+// 背景色
+let lightNormalBackgroundColor = "#e6f1eb";
+let lightBlindBackgroundColor = "#e6e9f1";
+let darkBackgroundColor = "#222222";
+let lightLevelNormalFontColor = "#093009";
+let lightLevelBlindFontColor = "#161b48";
+let darkLevelFontColor = "#ffffff";
+
 
 
 // 移动模式列表
@@ -142,11 +156,13 @@ function getLayer(number, size) {
 function createTiles() {
     // 修改背景颜色
     if (gameMode == "normal") {
-        document.body.style.backgroundColor = "#e6f1eb";
+        document.body.style.backgroundColor = lightNormalBackgroundColor;
     }
     else if (gameMode == "blind") {
-        document.body.style.backgroundColor = "#e6e9f1";
+        document.body.style.backgroundColor = lightBlindBackgroundColor;
     }
+    // document.body.style.backgroundColor = darkBackgroundColor;
+
     isFinish = false;
     isStart = false;
     isMoving = false;
@@ -265,7 +281,7 @@ function renderTiles(puzzle, tiles, edgeLength, size, gapWidthRatio, fontSizeRat
         // 添加胜利效果
         if (isFinish == true) {
             // 发光一定时间
-            tileElement.style.boxShadow = "0 0 100px #ffff5d7a";
+            tileElement.style.boxShadow = "0 0 100px #ffff5d40";
             setTimeout(() => { tileElement.style.boxShadow = "none"; }, 500);
         }
         puzzle.appendChild(tileElement); // 将拼图块添加到拼图容器中
@@ -487,6 +503,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // 设置整体字体大小和行高
     document.documentElement.style.fontSize = window.innerWidth / 112.5 + "px";
     document.documentElement.style.lineHeight = window.innerHeight / 112.5 + "px";
+    // 隐藏确认框
+    hideConfirmOverlay();
 
     // 获取url中的isRetry参数
     const isRetryParam = new URLSearchParams(window.location.search).get("isRetry");
@@ -512,11 +530,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 设置level文本颜色
     if (gameMode == "normal") {
-        levelShowElement.style.color = "#093009";
+        levelShowElement.style.color = lightLevelNormalFontColor;
     }
     else if (gameMode == "blind") {
-        levelShowElement.style.color = "##161b48";
+        levelShowElement.style.color = lightLevelBlindFontColor;
     }
+    // levelShowElement.style.color = darkLevelFontColor;
 
     // 设置光标样式
     setCursorStyle(isCustomCursor);
@@ -532,12 +551,15 @@ document.addEventListener("DOMContentLoaded", () => {
             switch (index) {
                 case 0:
                     gapWidthRatio = sizeInput.value;
+                    isChangeConfig = true;
                     break;
                 case 1:
                     fontSizeRatio = sizeInput.value;
+                    isChangeConfig = true;
                     break;
                 case 2:
                     borderRadiusRatio = sizeInput.value;
+                    isChangeConfig = true;
                     break;
                 default:
                     break;
@@ -556,7 +578,6 @@ document.addEventListener("DOMContentLoaded", () => {
     gameModeElement.addEventListener("click", switchGameMode);
     cursorModeElement.addEventListener("click", switchCursorStyle);
     scoreListElement.addEventListener("click", redirectToScoreList);
-    colorConfigCloseElement.addEventListener("click", hideOverlay);
     colorModeElement.addEventListener("click", showOverlay);
     groupLastElement.addEventListener("click", () => {
         switchGroup(-1);
@@ -564,6 +585,18 @@ document.addEventListener("DOMContentLoaded", () => {
     groupNextElement.addEventListener("click", () => {
         switchGroup(1);
     });
+    colorConfigCloseElement.addEventListener("click", () => {
+        if (isChangeConfig) {
+            showConfirmOverlay();
+            confirmButtonElement.addEventListener("click", () => {
+                hideOverlay();
+                hideConfirmOverlay();
+            });
+        } else {
+            hideOverlay();
+        }
+    });
+    cancelButtonElement.addEventListener("click", hideConfirmOverlay);
     colorConfigSaveElement.addEventListener("click", () => {
         saveConfig();
         hideOverlay();
@@ -656,7 +689,23 @@ document.addEventListener('keydown', function (event) {
         case "Escape":
             hideOverlay();
             break;
+        case "Control":
+        case "ControlLeft":
+        case "ControlRight":
+            isAllowOperate = false;
+            break;
         default:
+            break;
+    }
+});
+
+// 按键松开监听
+document.addEventListener('keyup', function (event) {
+    switch (event.key) {
+        case "Control":
+        case "ControlLeft":
+        case "ControlRight":
+            isAllowOperate = true;
             break;
     }
 });
@@ -749,6 +798,8 @@ function switswitchDataView() {
         levelShowElement.classList.add("hidden");
         groupElement.classList.add("hidden");
         colorModeElement.classList.add("hidden");
+        footInfoElement.style.color = "#00000000";
+        footInfoElement.getElementsByTagName('a')[0].style.color = "#00000000";
     }
     else {
         showTip = true;
@@ -762,6 +813,8 @@ function switswitchDataView() {
         levelShowElement.classList.remove("hidden");
         groupElement.classList.remove("hidden");
         colorModeElement.classList.remove("hidden");
+        footInfoElement.style.color = "#636363ba";
+        footInfoElement.getElementsByTagName('a')[0].style.color = "#636363ba";
     }
     updateTimerAndStep();
 }
@@ -961,6 +1014,8 @@ function setCursorStyle(isCustomCursor) {
         colorConfigSaveElement.classList.add("custom-pointer");
         colorConfigReset1Element.classList.add("custom-pointer");
         colorConfigReset2Element.classList.add("custom-pointer");
+        confirmButtonElement.classList.add("custom-pointer");
+        cancelButtonElement.classList.add("custom-pointer");
         for (let index = 0; index < colorInputs.length; index++) {
             colorInputs[index].classList.add("custom-pointer");
         }
@@ -983,6 +1038,8 @@ function setCursorStyle(isCustomCursor) {
         colorConfigSaveElement.classList.remove("custom-pointer");
         colorConfigReset1Element.classList.remove("custom-pointer");
         colorConfigReset2Element.classList.remove("custom-pointer");
+        confirmButtonElement.classList.remove("custom-pointer");
+        cancelButtonElement.classList.remove("custom-pointer");
         for (let index = 0; index < colorInputs.length; index++) {
             colorInputs[index].classList.remove("custom-pointer");
         }
@@ -1045,7 +1102,7 @@ function loadConfig() {
 
 // 应用默认/预设配置，未保存到config
 function resetConfig(defaultStyleConfig) {
-    console.log("使用预设");
+    isChangeConfig = true;
     colorConfig = defaultStyleConfig.colorConfig;
     gapWidthRatio = defaultStyleConfig.gapWidthRatio;
     fontSizeRatio = defaultStyleConfig.fontSizeRatio;
@@ -1065,6 +1122,8 @@ function showOverlay() {
     colorConfigOverlayElement.classList.remove('hidden');
     // 暂时禁用操作
     isAllowOperate = false;
+    // 初始化是否修改的值
+    isChangeConfig = false;
     // 禁用胜利的效果
     isFinish = false;
     let tempList = Array.from({ length: 100 }, (_, i) => i + 1);
@@ -1086,6 +1145,16 @@ function hideOverlay() {
     createTiles();
 }
 
+// 显示确认弹框
+function showConfirmOverlay() {
+    document.getElementById("confirm-overlay").classList.remove('hidden');
+}
+
+// 隐藏确认弹框
+function hideConfirmOverlay() {
+    document.getElementById("confirm-overlay").classList.add('hidden');
+}
+
 // 设置颜色选择器样式
 jscolor.presets.default = {
     previewSize: 30,
@@ -1103,6 +1172,7 @@ function setColorPickerValue() {
         colorInput.jscolor.fromString(colorConfig[index + 1]);
         // 添加事件监听器
         colorInput.addEventListener("input", function () {
+            isChangeConfig = true;
             // 获取输入框的值
             const value = colorInput.value;
             // 将值赋给colorConfig对象
