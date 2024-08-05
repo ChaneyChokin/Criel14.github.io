@@ -38,7 +38,13 @@ tip: 二者都能在国内访问；前者速度较慢，若没有科学上网，
 
 ### 游戏页—个性化设置
 
-![](READMEresource/puzzle-style-settings.png)
+版本20240726：
+
+![](READMEresource/puzzle-style-settings20240726.png)
+
+版本20240802：
+
+![](READMEresource/puzzle-style-settings20240802.png)
 
 ### 成绩列表页
 
@@ -55,6 +61,8 @@ tip: 二者都能在国内访问；前者速度较慢，若没有科学上网，
 <br>
 
 ## 主要功能
+
+tip:：以下功能是2024.7.26版本的功能，前往[日志](#log)查看最新功能
 
 - **游戏页**
   - **华容道还原：** 系统自动生成打乱，玩家根据选定模式操作拼图快，系统统计数据，复原判定等
@@ -260,6 +268,8 @@ localStorage.setItem("config", JSON.stringify(config));
 
 <br>
 
+<span id="log"></span>
+
 ## 日志
 
 - ——项目基础搭建——
@@ -284,7 +294,7 @@ localStorage.setItem("config", JSON.stringify(config));
   - 初步实现录像回放功能
 - 2024.7.26
   - 完善录像回放功能，修复优化项目的各个部分
-  - 确定**网页数字华容道v1.0**内容
+  - 项目初发布，版本20240726
 - ——以下是后续优化——
 - 2024.7.27
   - 适配移动端的滑动操作和UI， **需要横屏**
@@ -302,6 +312,16 @@ localStorage.setItem("config", JSON.stringify(config));
     - 删除某次成绩
     - 删除某一组成绩
     - 删除全部成绩
+- 2024.8.2
+  - 个性化设置界面大改，分成三个界面
+    - 颜色：修改每一层的方块颜色和字体颜色（新增字体颜色的修改）
+    - 大小：修改方块间隙大小、字体大小、圆角大小
+    - 预设/方案：
+      - 提供2个系统自带预设
+      - 提供3个自定义方案栏（新增自定义方案，config新增customConfig1，customConfig2，customConfig3子对象）
+
+  - 部分功能增加了NoticeJs弹框提示
+
 
 
 
